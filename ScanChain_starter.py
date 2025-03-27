@@ -122,9 +122,10 @@ def print_chain(chain):
 # Hint: Use the Timer() builtin function
 async def step_clock(dut):
 
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
+    dut.clock = 1
+    await Timer(10, units='ns')
+    dut.clock = 0
+    await Timer(10, units='ns')
 
     pass
     
