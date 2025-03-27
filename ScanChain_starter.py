@@ -175,6 +175,13 @@ async def output_chain_single(dut, ff_index):
     # TODO: YOUR CODE HERE 
     ######################
 
+    dut.scan_en = 1
+
+    for i in range(CHAIN_LENGTH - ff_index):
+        step_clock(dut)
+
+    return dut.scan_out
+
     pass       
 
 #-----------------------------------------------
