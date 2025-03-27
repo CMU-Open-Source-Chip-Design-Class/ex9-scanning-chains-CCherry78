@@ -126,8 +126,6 @@ async def step_clock(dut):
     await Timer(10, units='ns')
     dut.clk = 0
     await Timer(10, units='ns')
-
-    pass
     
 
 #-------------------------------------------------------------------
@@ -142,10 +140,9 @@ async def input_chain_single(dut, bit, ff_index):
     dut.scan_en = 1
     dut.scan_in = bit
 
-    for i in range(ff_index):
+    for i in range(ff_index + 1):
         step_clock(dut)
 
-    pass
     
 #-------------------------------------------------------------------
 
@@ -170,19 +167,13 @@ async def input_chain(dut, bit_list, ff_index):
 # chain at specified index 
         
 async def output_chain_single(dut, ff_index):
-
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
-
+    
     dut.scan_en = 1
 
     for i in range(CHAIN_LENGTH - ff_index):
         step_clock(dut)
 
     return dut.scan_out
-
-    pass       
 
 #-----------------------------------------------
 
