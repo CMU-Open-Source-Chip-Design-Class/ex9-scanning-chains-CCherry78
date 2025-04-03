@@ -7,7 +7,7 @@ from cocotb.triggers import Timer
 # to the filepath of the .log
 # file you are working with
 CHAIN_LENGTH = -1
-FILE_NAME    = ""
+FILE_NAME    = "adder/adder.log"
 
 
 
@@ -122,9 +122,9 @@ def print_chain(chain):
 # Hint: Use the Timer() builtin function
 async def step_clock(dut):
 
-    dut.clk = 1
+    dut.clk.value = 1
     await Timer(10, units='ns')
-    dut.clk = 0
+    dut.clk.value = 0
     await Timer(10, units='ns')
     
 
@@ -137,11 +137,11 @@ async def step_clock(dut):
         
 async def input_chain_single(dut, bit, ff_index):
 
-    dut.scan_en = 1
-    dut.scan_in = bit
+    dut.scan_en.value = 1
+    dut.scan_in.value = bit
 
     for i in range(ff_index + 1):
-        step_clock(dut)
+        await step_clock(dut)
 
     
 #-------------------------------------------------------------------
@@ -155,11 +155,18 @@ async def input_chain_single(dut, bit, ff_index):
         
 async def input_chain(dut, bit_list, ff_index):
 
-    dut.scan_en = 1
+    dut.scan_en.value = 1
+    await step_clock(dut)
 
-    for i in range(ff_index + 1):
-        dut.scan_in = bit_list[i]
-        step_clock(dut)
+    # get all bits in scan chain
+    for i in range(len(bit_list)):
+        dut.scan_in.value = bit_list[(len(bit_list) - 1 - i)]
+        await step_clock(dut)
+        # print(f"{dut.scan_in.value}\n\n")
+
+    # shift over to desired index
+    for i in range(ff_index):
+        await step_clock(dut)
 
 #-----------------------------------------------
 
@@ -168,12 +175,12 @@ async def input_chain(dut, bit_list, ff_index):
         
 async def output_chain_single(dut, ff_index):
     
-    dut.scan_en = 1
+    dut.scan_en.value = 1
 
     for i in range(CHAIN_LENGTH - ff_index):
-        step_clock(dut)
+        await step_clock(dut)
 
-    return dut.scan_out
+    return dut.scan_out.value
 
 #-----------------------------------------------
 
@@ -181,19 +188,24 @@ async def output_chain_single(dut, ff_index):
 # chain at specified index 
 # This is an upgrade of input_chain_single() and should be accomplished
 #   for Part H of Task 1
-        
+
 async def output_chain(dut, ff_index, output_length):
 
-    dut.scan_en = 1
+    dut.scan_en.value = 1
+    # await step_clock(dut)
 
     # initialize out_chain list
     out_chain = []
     for i in range(output_length):
-        out_chain[i] = 0
+        out_chain.append(0)
 
-    for i in range(CHAIN_LENGTH - ff_index):
-        out_chain[(CHAIN_LENGTH - 1) - i] = dut.scan_out
-        step_clock(dut)
+    for i in range((CHAIN_LENGTH - (ff_index + output_length)) - 1):
+        await step_clock(dut)
+
+    for i in range(output_length):
+        out_chain[(output_length - 1) - i] = dut.scan_out.value
+        await step_clock(dut)
+        # print(f"{dut.scan_out.value}\n\n")
 
     return out_chain      
 
@@ -210,8 +222,102 @@ async def test(dut):
 
     # Setup the scan chain object
     chain = setup_chain(FILE_NAME)
+    CHAIN_LENGTH = chain.chain_length
 
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
+    print_chain(chain)
+
+    # zero out unused register
+    zero = [0, 0, 0, 0, 0]
+
+    # first index should be 0
+    ff_index = 0
+
+    # input values into scan chain
+    await input_chain(dut, zero, ff_index)
+
+    # disable scan_en and step the clock once to get values in
+    dut.scan_en.value = 0
+    await step_clock(dut)
+
+    # set up bit_list for inputs
+    # a_reg = 0b0001 = 1
+    # b_reg = 0b0001 = 1
+    bit_list = [0, 0, 0, 1, 0, 0, 0, 1]
+
+    # first index should be 5 for a_reg
+    ff_index = 5
+
+    # input values into scan chain
+    await input_chain(dut, bit_list, ff_index)
+
+    # disable scan_en and step the clock once for combinational computation
+    dut.scan_en.value = 0
+    await step_clock(dut)
+
+    # output length should be equal to length of x_out
+    output_length = 5
+
+    # first index should be 0 for x_out
+    ff_index = 0
+
+    # feed out values from output
+    result = []
+    result = await output_chain(dut, ff_index, output_length) # ff_index remains 0
+
+    # print(f"result = {result}\n")
+    assert result == [0, 0, 0, 1, 0] # 1 + 1 == 2 == 0b00010
+
+@cocotb.test()
+async def test_2(dut):
+
+    global CHAIN_LENGTH
+    global FILE_NAME        # Make sure to edit this guy
+                            # at the top of the file
+
+    # Setup the scan chain object
+    chain = setup_chain(FILE_NAME)
+    CHAIN_LENGTH = chain.chain_length
+
+    print_chain(chain)
+
+    # zero out unused register
+    zero = [0, 0, 0, 0, 0]
+
+    # first index should be 0
+    ff_index = 0
+
+    # input values into scan chain
+    await input_chain(dut, zero, ff_index)
+
+    # disable scan_en and step the clock once to get values in
+    dut.scan_en.value = 0
+    await step_clock(dut)
+
+    # set up bit_list for inputs
+    # a_reg = 0b1011 = 11
+    # b_reg = 0b1110 = 14
+    bit_list_2 = [1, 0, 1, 1, 1, 1, 1, 0]
+
+    # first index should be 5 for a_reg
+    ff_index = 5
+
+    # input values into scan chain
+    await input_chain(dut, bit_list_2, ff_index)
+
+    # disable scan_en and step the clock once for combinational computation
+    dut.scan_en.value = 0
+    await step_clock(dut)
+
+    # output length should be equal to length of x_out
+    output_length = 5
+
+    # first index should be 0 for x_out
+    ff_index = 0
+
+    # feed out values from output
+    result = []
+    result = await output_chain(dut, ff_index, output_length) # ff_index remains 0
+
+    # print(f"result = {result}\n")
+    assert result == [1, 1, 0, 0, 1] # 11 + 14 == 25 == 0b11001
 

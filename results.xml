@@ -1,0 +1,9 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1743664931" />
+    <testcase name="test" classname="ScanChain_starter" file="/afs/andrew.cmu.edu/usr19/ccherry2/private/18224/ex9-scanning-chains-CCherry78/ScanChain_starter.py" lineno="217" time="0.005052804946899414" sim_time_ns="680.001" ratio_time="134578.91352352191" />
+    <testcase name="test_2" classname="ScanChain_starter" file="/afs/andrew.cmu.edu/usr19/ccherry2/private/18224/ex9-scanning-chains-CCherry78/ScanChain_starter.py" lineno="271" time="0.0035228729248046875" sim_time_ns="540.001" ratio_time="153284.26869951273">
+      <failure message="Test failed with RANDOM_SEED=1743664931" />
+    </testcase>
+  </testsuite>
+</testsuites>
