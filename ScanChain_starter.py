@@ -155,11 +155,11 @@ async def input_chain_single(dut, bit, ff_index):
         
 async def input_chain(dut, bit_list, ff_index):
 
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
+    dut.scan_en = 1
 
-    pass
+    for i in range(ff_index + 1):
+        dut.scan_in = bit_list[i]
+        step_clock(dut)
 
 #-----------------------------------------------
 
@@ -184,11 +184,18 @@ async def output_chain_single(dut, ff_index):
         
 async def output_chain(dut, ff_index, output_length):
 
-    ######################
-    # TODO: YOUR CODE HERE 
-    ######################
+    dut.scan_en = 1
 
-    pass       
+    # initialize out_chain list
+    out_chain = []
+    for i in range(output_length):
+        out_chain[i] = 0
+
+    for i in range(CHAIN_LENGTH - ff_index):
+        out_chain[(CHAIN_LENGTH - 1) - i] = dut.scan_out
+        step_clock(dut)
+
+    return out_chain      
 
 #-----------------------------------------------
 
